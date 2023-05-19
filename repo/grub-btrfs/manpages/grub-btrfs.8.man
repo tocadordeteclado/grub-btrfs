@@ -1,0 +1,272 @@
+.TH "grub-btrfs" "8"
+
+.SH "NOME"
+.PP
+grub-btrfs - Adicione automaticamente btrfs-Snapshots como um submenu do Grub
+
+.SH "SINOPSE"
+.PP
+\fC/etc/grub.d/41_snapshots\-btrfs [\-V, \-\-version]\fP
+
+.SH "DESCRIÇÃO"
+.PP
+Melhora o grub adicionando “snapshots btrfs” ao menu do grub.
+
+.PP
+Você pode inicializar seu sistema em um “instantâneo” no
+menu do grub. Suporta snapshots manuais, snapper e timeshift.
+Recursos do grub-btrfs:
+
+.IP \(em 4
+Liste automaticamente os instantâneos existentes
+na partição raiz (btrfs).
+
+.IP \(em 4
+Detecta automaticamente se /boot está em uma partição
+separada.
+
+.IP \(em 4
+Detecte automaticamente kernel, initramfs e microcódigo
+intel/amd no diretório /boot em instantâneos.
+
+.IP \(em 4
+Crie automaticamente a “entrada de menu” correspondente
+no grub.cfg.
+.IP \(em 4
+Detecte automaticamente o tipo/tags e descrições/comentários
+de instantâneos de snapper/timeshift.
+.IP \(em 4
+Gere grub.cfg automaticamente se você usar o serviço
+systemd fornecido.
+
+.SH "CONFIGURAÇÃO"
+.PP
+grub-btrfs é configurado através da página \fC/etc/default/grub\-btrfs/config\fP.
+As opções possíveis são:
+
+.SS "GERAL"
+.SS "\fCGRUB_BTRFS_DISABLE\fP"
+.PP
+Desabilite o grub-btrfs se verdadeiro.
+.IP \(em 4
+Normal: “false”
+.IP \(em 4
+Exemplo: \fCGRUB_BTRFS_DISABLE="true"\fP
+
+.SS "\fCGRUB_BTRFS_TITLE_FORMAT\fP"
+.PP
+O submenu de entradas de instantâneo no Grub é adicionado
+de acordo com esta linha. É possível alterar a ordem dos
+campos.
+.IP \(em 4
+Normal: (“date” “snapshot” “type” “description”)
+.PP
+-Exemplo: \fCGRUB_BTRFS_TITLE_FORMAT=("date" "snapshot" "type" "description")\fP
+
+.SS "\fCGRUB_BTRFS_LIMIT\fP"
+.PP
+Número máximo de instantâneos no submenu de instantâneos do GRUB.
+.IP \(em 4
+Normal: “50”
+.PP
+-Exemplo: \fCGRUB_BTRFS_LIMIT="50"\fP
+
+.SS "\fCGRUB_BTRFS_SUBVOLUME_SORT\fP"
+.PP
+Classifique os subvolumes encontrados por “ogeneration” ou
+“generation” ou “path” ou “rootid”.
+.IP \(em 4
+Consulte a seção classificando em
+.BR btrfs-subvolume (8)
+.PP
+“-rootid” significa listar instantâneo por novos primeiro.
+.IP \(em 4
+Normal: “-rootid”
+.PP
+-Exemplo: \fCGRUB_BTRFS_SUBVOLUME_SORT="+ogen,\-gen,path,rootid"\fP
+
+.SS "\fCGRUB_BTRFS_SHOW_SNAPSHOTS_FOUND\fP"
+.PP
+Mostrar instantâneos encontrados durante o procedimento “grub-mkconfig”.
+.IP \(em 4
+Normal: “true”
+.PP
+-Exemplo: \fCGRUB_BTRFS_SHOW_SNAPSHOTS_FOUND="false"\fP
+
+.SS "\fCGRUB_BTRFS_ROOTFLAGS\fP"
+.PP
+Opções de montagem separadas por vírgulas a serem usadas ao
+inicializar um instantâneo. Eles podem ser definidos aqui,
+bem como na linha “/” dentro das páginas “/etc/fstab” dos
+respectivos instantâneos. As opções de montagem encontradas
+em ambos os locais são combinadas e esta variável tem
+prioridade sobre as entradas `fstab`.
+NB: Não inclui “subvol=...” ou “subvolid=...” aqui.
+.IP \(em 4
+Normal: “”
+.PP
+-Exemplo: \fCGRUB_BTRFS_ROOTFLAGS="space_cache,commit=10,norecovery"\fP
+
+.SS "\fCGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION\fP"
+.PP
+“grub-btrfs” detecta automaticamente sua partição de
+inicialização, localizada na raiz do sistema ou em uma
+partição separada ou em um subvolume. Mude para “true”
+se sua partição de inicialização não for detectada
+como separada.
+.IP \(em 4
+Normal: “false”
+.PP
+-Exemplo: \fCGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION="true"\fP
+
+.SS "CUSTOM KERNELS"
+.SS "\fCGRUB_BTRFS_NKERNEL\fP / \fCGRUB_BTRFS_NINIT\fP / \fCGRUB_BTRFS_CUSTOM_MICROCODE\fP"
+.PP
+“grub-btrfs” detecta automaticamente a maioria dos kernels
+existentes, initramfs e microcódigo. Kernel customizado,
+initramfs e microcódigos que não são detectados podem ser
+adicionados nestas variáveis.
+.IP \(em 4
+Normal: (“”)
+.PP
+-Exemplo: \fCGRUB_BTRFS_NKERNEL=("kernel\-5.19.4\-custom" "vmlinux\-5.19.4\-custom")\fP
+          \fCGRUB_BTRFS_NINIT=("initramfs\-5.19.4\-custom.img" "initrd\-5.19.4\-custom.img" "otherinit\-5.19.4\-custom.gz")\fP
+          \fCGRUB_BTRFS_CUSTOM_MICROCODE=("custom\-ucode.img" "custom\-uc.img "custom_ucode.cpio")\fP
+
+.SS "SNAPSHOT FILTERING"
+.SS "\fCGRUB_BTRFS_IGNORE_SPECIFIC_PATH\fP"
+.PP
+Ignore o caminho específico durante o procedimento “grub-mkconfig”.
+Somente caminhos exatos são ignorados. por exemplo: se
+`specific path` = @, apenas o instantâneo `@` será ignorado.
+.IP \(em 4
+Normal: (“@”)
+.PP
+-Exemplo: \fCGRUB_BTRFS_IGNORE_SPECIFIC_PATH=("@home")\fP
+
+.SS "\fCGRUB_BTRFS_IGNORE_PREFIX_PATH\fP"
+.PP
+Ignore o caminho do prefixo durante o procedimento “grub-mkconfig”.
+Qualquer caminho começando com a string especificada será
+ignorado. por exemplo: se `prefix path` = @, todos os
+instantâneos que começam com “@/...” serão ignorados.
+.IP \(em 4
+Normal: (“var/lib/docker” “@var/lib/docker” “@/var/lib/docker”)
+.PP
+-Exemplo: \fCGRUB_BTRFS_IGNORE_PREFIX_PATH=("var/lib/docker" "@var/lib/docker" "@/var/lib/docker")\fP
+
+.SS "\fCGRUB_BTRFS_IGNORE_SNAPSHOT_TYPE\fP"
+.PP
+Ignore o tipo/tag específico do instantâneo durante
+o procedimento “grub-mkconfig”. Para snapper:
+Type = single, pre, post.
+Para Timeshift:
+Tag = boot, ondemand, hourly, daily, weekly, monthly.
+.IP \(em 4
+Normal: (“”)
+.PP
+-Exemplo: \fCGRUB_BTRFS_IGNORE_SNAPSHOT_TYPE=("ondemand")\fP
+
+.SS "\fCGRUB_BTRFS_IGNORE_SNAPSHOT_DESCRIPTION\fP"
+.PP
+Ignorar a descrição específica do instantâneo durante
+o procedimento “grub-mkconfig”.
+.IP \(em 4
+Normal: (“”)
+.PP
+-Exemplo: \fCGRUB_BTRFS_IGNORE_SNAPSHOT_DESCRIPTION=("timeline")\fP
+
+.SS "DISTRIBUTION DEPENDENT SETTINGS"
+.SS "\fCGRUB_BTRFS_BOOT_DIRNAME\fP"
+.PP
+Localização de kernels/initramfs/microcode.
+Usado por “grub-btrfs” para detectar a partição de
+inicialização e a localização de kernels, initramfs
+e microcódigos.
+.IP \(em 4
+Normal: “/boot”
+.PP
+-Exemplo: \fCGRUB_BTRFS_BOOT_DIRNAME="/"\fP
+
+.SS "\fCGRUB_BTRFS_GRUB_DIRNAME\fP"
+.PP
+Localização da pasta que contém a página “grub.cfg”.
+Usado pelo grub-btrfs para salvar a página “grub-btrfs.cfg”.
+Pode ser grub2 em alguns sistemas.
+Por exemplo, no Unix com EFI: “/boot/efi/EFI/fedora”.
+.IP \(em 4
+Normal: “/boot/grub”
+.PP
+-Exemplo: \fCGRUB_BTRFS_GRUB_DIRNAME="/boot/grub2"\fP
+
+.SS "\fCGRUB_BTRFS_MKCONFIG\fP"
+.PP
+Nome/caminho do plug para gerar o menu grub, usado por “grub-btrfs.service”.
+Pode ser 'grub2-mkconfig' em alguns sistemas (por exemplo, Unix).
+Os caminhos comum são /sbin:/bin:/usr/sbin:/usr/bin, se o seu
+caminho estiver faltando, informe-o no projeto upstream. Você
+pode usar apenas o nome do plug ou o caminho completo.
+.IP \(em 4
+Normal: grub-mkconfig
+.PP
+-Exemplo: \fCGRUB_BTRFS_MKCONFIG=/sbin/grub2\-mkconfig\fP
+
+.SS "\fCGRUB_BTRFS_SCRIPT_CHECK\fP"
+.PP
+Nome do plug-in grub-script-check, usado por “grub-btrfs”.
+Pode ser 'grub2-script-check' em alguns sistemas (por exemplo,
+Unix).
+.IP \(em 4
+Normal: grub-script-check
+.IP \(em 4
+Exemplo: \fCGRUB_BTRFS_SCRIPT_CHECK=grub2\-script\-check\fP
+
+.SS "\fCGRUB_BTRFS_MKCONFIG_LIB\fP"
+.PP
+Caminho de grub-mkconfig\d\s-2lib\s+2\u file, usado por “grub-btrfs”
+Pode ser ’/usr/share/grub2/grub-mkconfig\d\s-2lib\s+2\u’ em alguns sistemas (por exemplo, Unix).
+.IP \(em 4
+Normal: /usr/share/grub/grub-mkconfig\d\s-2lib\s+2\u
+.IP \(em 4
+Exemplo: \fCGRUB_BTRFS_MKCONFIG_LIB=/usr/share/grub2/grub\-mkconfig_lib\fP
+
+.SS "SECURITY"
+.SS "\fCGRUB_BTRFS_PROTECTION_AUTHORIZED_USERS\fP"
+.PP
+Gerenciamento de proteção por senha para submenu, instantâneos.
+Consulte o manual do Grub
+\fIhttp://localhost/grub/manual/grub/grub.html#Authentication-and-authorisation
+\fP e este comentário
+\fIhttp://localhost/grub -btrfs/
+\fP
+Adicione nomes da pessoa autorizada separados por vírgula (peopleexample,peoplemaster).
+Quando a proteção por senha do Grub está habilitada, a
+super-pessoa é autorizada normalmente, e não é necessário
+adicioná-la.
+.IP \(em 4
+Normal: “- Exemplo: \fCGRUB_BTRFS_PROTECTION_AUTHORIZED_USERS="userfoo,userbar"\fP
+
+.SS "\fCGRUB_BTRFS_DISABLE_PROTECTION_SUBMENU\fP"
+.PP
+Desative o suporte de autenticação para o submenu de
+Grub-btrfs apenas (--unrestricted). não funciona se
+GRUB\d\s-2BTRFS\s+2\u\d\s-2PROTECTION\s+2\u\d\s-2AUTHORIZED\s+2\u\d\s-2USERS\s+2\u
+não está vazio.
+.IP \(em 4
+Normal: “false”
+.IP \(em 4
+Exemplo: \fCGRUB_BTRFS_DISABLE_PROTECTION_SUBMENU="true"\fP
+
+.SH "FILES"
+.PP
+/etc/default/grub-btrfs/config
+
+.SH "SEE ALSO"
+.IR btrfs (8)
+.IR btrfs-subvolume (8)
+.IR grub-btrfsd (8)
+.IR grub-mkconfig (8)
+
+.SH "DIREITO AUTORAL"
+.PP
+Direito Autoral (C) {{ ano(); }}  {{ nome_do_autor(); }}

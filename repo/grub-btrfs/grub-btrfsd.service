@@ -1,0 +1,22 @@
+[Unit]
+Description=Regenerar grub-btrfs.cfg
+
+[Service]
+Type=simple
+LogLevelMax=notice
+# Defina os caminhos possíveis para `grub-mkconfig`.
+Environment="PATH=/sbin:/bin:/usr/sbin:/usr/bin"
+# Carregar variáveis de ambiente da configuração.
+EnvironmentFile=/etc/default/grub-btrfs/config
+# Inicie o serviço, o uso dele é:
+# grub-btrfsd [-h, --help] [-t, --timeshift-auto] [-l, --log-file LOG_FILE] SNAPSHOTS_DIR
+# SNAPSHOTS_DIR         Diretório de instantâneo para assistir, sem efeito quando --timeshift-auto.
+# Argumentos opcionais:
+# -t, --timeshift-auto  Detectar automaticamente o diretório instantâneo do Timeshifts.
+# -l, --log-file        Especifique um arquivo de log para gravar.
+# -v, --verbose         Deixe o log do serviço ser mais detalhado.
+# -s, --syslog          Gravar no syslog.
+ExecStart=/usr/bin/grub-btrfsd --syslog /.snapshots
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,83 @@
+.TH "grub-btrfsd" "8"
+
+.SH "NOME"
+.PP
+grub-btrfsd - Um serviço OpenRC para atualizar automaticamente o menu grub com:
+.BR grub-btrfs (8)
+.PP
+quando um novo instantâneo btrfs é criado.
+
+.SH "SINOPSE"
+.PP
+\fCgrub\-btrfsd [\-h, \-\-help] [\-c, \-\-no\-color] [\-l, \-\-log\-file LOG_FILE] [\-s, \-\-syslog] [\-t, \-\-timeshift\-auto] [\-v, \-\-verbose] SNAPSHOTS_DIR\fP
+
+.SH "DESCRIÇÃO"
+.PP
+Grub-btrfsd é um script de shell que deve ser um procedimento
+como um serviço. Grub-btrfsd observa um diretório onde btrfs-snapshots
+são criados ou excluídos via inotifywait e faz o procedimento de
+grub-mkconfig (se grub-mkconfig nunca passou por um procedimento
+antes desde que grub-btrfs foi instalado) ou \fC/etc/grub.d/41_snapshots\-btrfs\fP
+(quando o grub-mkconfig passou por procedimento antes com o
+grub-btrfs instalado) quando algo nesse diretório é alterado.
+.SH "OPÇÕES"
+.SS "\fCSNAPSHOTS_DIR\fP"
+.PP
+Este argumento especifica o caminho onde o grub-btrfsd procura
+instantâneos recém-criados e exclusões de instantâneos. Geralmente
+é definido pelo programa usado para fazer instantâneos. Por exemplo.
+para Snapper seria \fC/.snapshots\fP
+
+.SS "\fC\-c / \-\-no\-color\fP"
+.PP
+Desative as cores na saída.
+
+.SS "\fC\-l / \-\-log\-file\fP"
+.PP
+Este argumento especifica uma página onde grub-btrfsd deve
+gravar mensagens de log.
+
+.SS "\fC\-s / \-\-syslog\fP"
+.PP
+Gravar no syslog.
+
+.SS "\fC\-t / \-\-timeshift\-auto\fP"
+.PP
+Este é um sinalizador para ativar a detecção automática do caminho onde o Timeshift armazena os instantâneos. As versões mais recentes (>=22.06) do Timeshift montam seus instantâneos em \fC/run/timeshift/$PID/backup/timeshift\-btrfs\fP. Onde \fC$PID\fP é o ID do processo da sessão Timeshift atualmente em procedimento. O PID muda toda vez que o Timeshift é aberto. grub-btrfsd pode cuidar automaticamente da detecção do PID e diretório corretos se este sinalizador estiver definido. Neste caso, o argumento \fCSNAPSHOTS_DIR\fP não tem efeito.
+
+.SS "\fC\-v / \-\-verbose\fP"
+.PP
+Deixe o log do serviço ser mais detalhado.
+
+.SS "\fC\-h / \-\-help\fP"
+.PP
+Exibe uma mensagem curta de ajuda.
+
+
+
+.SH "CONFIGURAÇÃO"
+.PP
+O serviço geralmente é configurado através da página \fC/etc/conf.d/grub\-btrfsd\fP em sistemas openrc-init e \fCsudo systemctl edit \-\-full grub\-btrfsd\fP em sistemas systemd. Neste arquivo podem ser configurados os argumentos (Ver OPÇÕES), que o OpenRC passa para o serviço ao ser iniciado.
+
+.SS "OBSERVAÇÕES"
+.PP
+Uma configuração comum para o Snapper seria definir \fCSNAPSHOTS_DIR\fP como \fC/.snapshots\fP e não definir \fC\-\-timeshift\-auto\fP. Para Timeshift, \fC\-\-timeshift\-auto\fP é definido como verdadeiro e \fCSNAPSHOTS_DIR\fP pode ser deixado como está.
+
+.SH "PÁGINAS"
+.PP
+\fC/etc/conf.d/grub\-btrfsd\fP
+\fC/usr/lib/systemd/system/grub\-btrfsd.service\fP
+
+.SH "VEJA TAMBÉM"
+.IR btrfs (8)
+.IR btrfs-subvolume (8)
+.IR grub-btrfsd (8)
+.IR grub-mkconfig (8)
+.IR inotifywait (1)
+.IR openrc (8)
+.IR rc-service (8)
+.IR timeshift (1)
+
+.SH "DIREITO AUTORAL"
+.PP
+Direito Autoral (C) {{ ano(); }}  {{ nome_do_autor(); }}

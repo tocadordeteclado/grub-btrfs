@@ -1,0 +1,192 @@
+#+title: grub-btrfs
+#+author: Pascal Jaeger
+#+man_class_option: :sectionid 8
+
+* NOME
+    grub-btrfs - Adicione automaticamente btrfs-Snapshots como um submenu do Grub.
+
+* SINOPSE
+~/etc/grub.d/41_snapshots-btrfs [-V, --version]~
+
+* DESCRIÇÃO
+Melhora o grub adicionando "snapshots btrfs" ao menu do grub.
+
+Você pode inicializar seu sistema em um "instantâneo"
+no menu do grub. Suporta snapshots manuais, snapper
+e timeshift. Recursos do grub-btrfs:
+- Liste automaticamente os instantâneos existentes na partição raiz (btrfs).
+- Detecta automaticamente se /boot está em uma partição separada.
+- Detecte automaticamente kernel, initramfs e microcódigo intel/amd no diretório /boot em instantâneos.
+- Crie automaticamente a "entrada de menu" correspondente no grub.cfg.
+- Detecte automaticamente o tipo/tags e descrições/comentários de instantâneos de snapper/timeshift.
+- Gere grub.cfg automaticamente se você usar o serviço systemd fornecido.
+
+* CONFIGURAÇÃO
+grub-btrfs é configurado através da página ~/etc/default/grub-btrfs/config~.
+As opções possíveis são:
+
+** GERAL
+
+*** ~GRUB_BTRFS_DISABLE~
+Desabilite o grub-btrfs se verdadeiro.
+- Normal: "false"
+- Exemplo: ~GRUB_BTRFS_DISABLE="true"~
+
+*** ~GRUB_BTRFS_TITLE_FORMAT~
+O submenu de entradas de instantâneo no Grub é adicionado de acordo
+com esta linha. É possível alterar a ordem dos campos.
+- Normal: ("date" "snapshot" "type" "description")
+-Exemplo: ~GRUB_BTRFS_TITLE_FORMAT=("date" "snapshot" "type" "description")~
+
+*** ~GRUB_BTRFS_LIMIT~
+Número máximo de instantâneos no submenu de instantâneos do GRUB.
+- Normal: "50"
+-Exemplo: ~GRUB_BTRFS_LIMIT="50"~
+
+*** ~GRUB_BTRFS_SUBVOLUME_SORT~
+Classifique os subvolumes encontrados por "ogeneration",
+"generation", "path" ou "rootid".
+- Consulte a seção Classificando em:
+#+BEGIN_MAN
+.BR btrfs-subvolume (8)
+#+END_MAN
+"-rootid" significa listar instantâneo por novos primeiro.
+- Normal: "-rootid"
+-Exemplo: ~GRUB_BTRFS_SUBVOLUME_SORT="+ogen,-gen,path,rootid"~
+
+*** ~GRUB_BTRFS_SHOW_SNAPSHOTS_FOUND~
+Mostrar instantâneos encontrados durante o procedimento "grub-mkconfig"
+- Normal: "true"
+-Exemplo: ~GRUB_BTRFS_SHOW_SNAPSHOTS_FOUND="false"~
+
+*** ~GRUB_BTRFS_ROOTFLAGS~
+Opções de montagem separadas por vírgulas a serem usadas
+ao inicializar um instantâneo. Eles podem ser definidos
+aqui, bem como na linha "/" dentro dos arquivos "/etc/fstab"
+dos respectivos instantâneos. As opções de montagem encontradas
+em ambos os locais são combinadas e esta variável tem prioridade
+sobre as entradas `fstab`.
+NB: Não incluir "subvol=..." ou "subvolid=..." aqui.
+- Normal: ""
+-Exemplo: ~GRUB_BTRFS_ROOTFLAGS="space_cache,commit=10,norecovery"~
+
+*** ~GRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION~
+"grub-btrfs" detecta automaticamente sua partição de inicialização,
+localizada na raiz do sistema ou em uma partição separada ou em
+um subvolume. Mude para "true" se sua partição de inicialização
+não for detectada como separada.
+- Normal: "false"
+-Exemplo: ~GRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION="true"~
+
+** CUSTOM KERNELS
+
+*** ~GRUB_BTRFS_NKERNEL~ / ~GRUB_BTRFS_NINIT~ / ~GRUB_BTRFS_CUSTOM_MICROCODE~
+"grub-btrfs" detecta automaticamente a maioria dos kernels
+existentes, initramfs e microcódigo. Kernel customizado,
+initramfs e microcódigos que não são detectados podem
+ser adicionados nestas variáveis.
+- Normal: ("")
+-Exemplo: ~GRUB_BTRFS_NKERNEL=("kernel-5.19.4-custom" "vmlinux-5.19.4-custom")~
+          ~GRUB_BTRFS_NINIT=("initramfs-5.19.4-custom.img" "initrd-5.19.4-custom.img" "otherinit-5.19.4-custom.gz")~
+          ~GRUB_BTRFS_CUSTOM_MICROCODE=("custom-ucode.img" "custom-uc.img "custom_ucode.cpio")~
+
+** SNAPSHOT FILTERING
+
+*** ~GRUB_BTRFS_IGNORE_SPECIFIC_PATH~
+Ignore o caminho específico durante o procedimento "grub-mkconfig".
+Somente caminhos exatos são ignorados.
+Ex: se `specific path` = @, apenas o `@` instantâneo será ignorado.
+- Normal: ("@")
+-Exemplo: ~GRUB_BTRFS_IGNORE_SPECIFIC_PATH=("@home")~
+
+*** ~GRUB_BTRFS_IGNORE_PREFIX_PATH~
+Ignore o caminho do prefixo durante o procedimento "grub-mkconfig".
+Qualquer caminho começando com a string especificada será ignorado.
+Exemplo: se `prefix path` = @, todos os instantâneos começando com "@/..." será ignorado.
+- Normal: ("var/lib/docker" "@var/lib/docker" "@/var/lib/docker")
+-Exemplo: ~GRUB_BTRFS_IGNORE_PREFIX_PATH=("var/lib/docker" "@var/lib/docker" "@/var/lib/docker")~
+
+*** ~GRUB_BTRFS_IGNORE_SNAPSHOT_TYPE~
+Ignore o tipo/tag específico do instantâneo durante o procedimento "grub-mkconfig".
+Para snapper:
+Type = single, pre, post.
+Para Timeshift:
+Tag = boot, ondemand, hourly, daily, weekly, monthly.
+- Normal: ("")
+-Exemplo: ~GRUB_BTRFS_IGNORE_SNAPSHOT_TYPE=("ondemand")~
+
+*** ~GRUB_BTRFS_IGNORE_SNAPSHOT_DESCRIPTION~
+Ignore a descrição específica do instantâneo durante o procedimento "grub-mkconfig".
+- Normal: ("")
+-Exemplo: ~GRUB_BTRFS_IGNORE_SNAPSHOT_DESCRIPTION=("timeline")~
+
+** CONFIGURAÇÕES BOAS PARA DISTRIBUIÇÃO
+
+*** ~GRUB_BTRFS_BOOT_DIRNAME~
+Localização de kernels/initramfs/microcode.
+Usado por "grub-btrfs" para detectar a partição de inicialização e a localização de kernels, initramfs e microcódigos.
+- Normal: "/boot"
+-Exemplo: ~GRUB_BTRFS_BOOT_DIRNAME="/"~
+
+*** ~GRUB_BTRFS_GRUB_DIRNAME~
+Localização da pasta que contém o arquivo "grub.cfg".
+Usado pelo grub-btrfs para salvar a página "grub-btrfs.cfg".
+Pode ser grub2 em alguns sistemas.
+Por exemplo, no Unix com EFI : "/boot/efi/EFI/fedora"
+- Normal: "/boot/grub"
+-Exemplo: ~GRUB_BTRFS_GRUB_DIRNAME="/boot/grub2"~
+
+*** ~GRUB_BTRFS_MKCONFIG~
+Nome/caminho do plug para gerar o menu grub, usado por
+"grub-btrfs.service". Pode ser 'grub2-mkconfig' em
+alguns sistemas (por exemplo, Unix). Os caminhos comum
+são /sbin:/bin:/usr/sbin:/usr/bin, se seu caminho
+estiver faltando, informe-o no projeto upstream.
+Você pode usar apenas o nome do plug ou o caminho
+completo.
+- Normal: grub-mkconfig
+-Exemplo: ~GRUB_BTRFS_MKCONFIG=/sbin/grub2-mkconfig~
+
+*** ~GRUB_BTRFS_SCRIPT_CHECK~
+Nome do plug grub-script-check, usado por "grub-btrfs".
+Pode ser 'grub2-script-check' em alguns sistemas (por exemplo, Unix).
+- Normal: grub-script-check
+- Exemplo: ~GRUB_BTRFS_SCRIPT_CHECK=grub2-script-check~
+
+*** ~GRUB_BTRFS_MKCONFIG_LIB~
+Caminho da página grub-mkconfig_lib, usado por "grub-btrfs".
+Pode ser '/usr/share/grub2/grub-mkconfig_lib' em alguns sistemas
+(por exemplo, Unix).
+- Normal: /usr/share/grub/grub-mkconfig_lib
+- Exemplo: ~GRUB_BTRFS_MKCONFIG_LIB=/usr/share/grub2/grub-mkconfig_lib~
+
+** SEGURANÇA
+
+*** ~GRUB_BTRFS_PROTECTION_AUTHORIZED_USERS~
+Gerenciamento de proteção por senha para submenu, instantâneos.
+Consulte o manual do Grub http://localhost/grub/manual/grub/grub.html#Authentication-and-authorisation
+e este comentário http://localhost/grub-btrfs. Adicionar
+nomes de pessoa autorizadas separadas por vírgula (peopleexample,peoplamaster).
+Quando a proteção por senha do Grub está habilitada, a super-pessoa
+é autorizada, não é necessário adicioná-la.
+- Normal: "- Exemplo: ~GRUB_BTRFS_PROTECTION_AUTHORIZED_USERS="userfoo,userbar"~
+
+*** ~GRUB_BTRFS_DISABLE_PROTECTION_SUBMENU~
+Disable authentication support for submenu of Grub-btrfs only (--unrestricted)
+does not work if GRUB_BTRFS_PROTECTION_AUTHORIZED_USERS is not empty
+- Default: "false"
+- Example: ~GRUB_BTRFS_DISABLE_PROTECTION_SUBMENU="true"~
+
+* PÁGINAS
+/etc/default/grub-btrfs/config
+
+* VEJA TAMBÉM
+#+BEGIN_MAN
+.IR btrfs (8)
+.IR btrfs-subvolume (8)
+.IR grub-btrfsd (8)
+.IR grub-mkconfig (8)
+#+END_MAN
+
+* DIREITO AUTORAL
+Direito Autoral (C) {{ ano(); }}  {{ nome_do_autor(); }}

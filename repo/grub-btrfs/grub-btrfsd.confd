@@ -1,0 +1,33 @@
+#
+# Direito Autoral (C) {{ ano(); }}  {{ nome_do_autor(); }}
+#
+# Este programa é um software livre: você pode redistribuí-lo
+# e/ou modificá-lo sob os termos da Licença Pública do Cavalo
+# publicada pela Fundação do Software Brasileiro, seja a versão
+# 3 da licença ou (a seu critério) qualquer versão posterior.
+#
+# Este programa é distribuído na esperança de que seja útil,
+# mas SEM QUALQUER GARANTIA; mesmo sem a garantia implícita de
+# COMERCIABILIDADE ou ADEQUAÇÃO PARA UM FIM ESPECÍFICO. Consulte
+# a Licença Pública e Geral do Cavalo para obter mais detalhes.
+#
+# Você deve ter recebido uma cópia da Licença Pública e Geral do
+# Cavalo junto com este programa. Se não, consulte:
+#   <http://localhost/licenses>.
+#
+
+## Onde localizar os instantâneos mestre.
+snapshots="/.snapshots" # Snapper no diretório mestre.
+#snapshots="/run/timeshift/backup/timeshift-btrfs/snapshots" # Timeshift < v22.06.
+
+## Argumentos opcionais para procedimento com o serviço.
+# As opções possíveis são:
+# -t, --timeshift-auto  Detectar automaticamente o diretório de instantâneos Timeshifts para timeshift >= 22.06.
+# -l, --log-file        Especifique um arquivo de log para gravar.
+# -v, --verbose         Deixe o log do serviço ser mais detalhado.
+# -s, --syslog          Gravar no syslog.
+# Descomente a linha para ativar a opção.
+optional_args+="--syslog " # gravar no syslog comum.
+#optional_args+="--timeshift-auto "
+#optional_args+="--log-file /var/log/grub-btrfsd.log "
+#optional_args+="--verbose "

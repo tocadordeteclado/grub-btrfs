@@ -1,0 +1,38 @@
+#!/usr/bin/ash
+
+
+#
+# Seus filhos que devia estár fazendo esse serviço.
+#
+run_latehook()
+{
+    local root_mnt="/new_root"
+
+    #
+    # Resolver dispositivos para blkid.
+    #
+    local current_dev=$(resolve_device "$root");
+
+    #
+    # Procedimentos apenas em um instantâneo, somente leitura.
+    #
+    if [[ $(blkid "${current_dev}" -s TYPE -o value) = "btrfs" ]] && [[ $(btrfs property get ${root_mnt} ro) != "ro=false" ]];
+    then
+        local lower_dir=$(mktemp -d -p /)
+        local ram_dir=$(mktemp -d -p /)
+
+        #
+        # Mover new_root para lower_dir.
+        #
+        mount --move ${root_mnt} ${lower_dir}
+
+        #
+        # Espaço, você não pode testar.
+        #
+        mount -t tmpfs cowspace ${ram_dir}
+
+        mkdir -p ${ram_dir}/upper
+        mkdir -p ${ram_dir}/work
+        mount -t overlay -o lowerdir=${lower_dir},upperdir=${ram_dir}/upper,workdir=${ram_dir}/work rootfs ${root_mnt}
+    fi
+}
